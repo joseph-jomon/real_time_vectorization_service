@@ -1,31 +1,32 @@
-from fastapi import FastAPI, HTTPException
-from app.models.text_vectorizer import TextVectorizer
-from app.models.image_vectorizer import ImageVectorizer
+from fastapi import FastAPI, UploadFile, File
+from pydantic import BaseModel
 from PIL import Image
-from io import BytesIO
-import numpy as np
-import base64
+import io
+
+# Import the vectorizer classes
+from text_vectorizer import TextVectorizer
+from image_vectorizer import ImageVectorizer
 
 app = FastAPI()
 
-# Initialize the vectorizers
+# Initialize vectorizers
 text_vectorizer = TextVectorizer()
 image_vectorizer = ImageVectorizer()
 
-@app.post("/vectorize-text/")
-async def vectorize_text(text: str):
-    try:
-        vector = text_vectorizer.vectorize(text)
-        return {"vector": vector.tolist(), "source": "computed"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error vectorizing text: {str(e)}")
+# Pydantic model for text input
+class TextInput(BaseModel):
+    text: str
 
-@app.post("/vectorize-image/")
-async def vectorize_image(image_data: str):
-    try:
-        # Decode base64 image data
-        image = Image.open(BytesIO(base64.b64decode(image_data)))
-        vector = image_vectorizer.vectorize(image)
-        return {"vector": vector.tolist(), "source": "computed"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid image data: {str(e)}")
+@app.post("/vectorize/text")
+async def vectorize_text(input: TextInput):
+    result = text_vectorizer.vectorize(input.text)
+    return result
+
+@app.post("/vectorize/image")
+async def vectorize_image(file: UploadFile = File(...)):
+    # Read the image file
+    image_bytes = await file.read()
+    image = Image.open(io.BytesIO(image_bytes))
+    
+    result = image_vectorizer.vectorize(image)
+    return result

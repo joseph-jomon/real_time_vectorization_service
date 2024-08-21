@@ -1,22 +1,33 @@
-from torchvision import models, transforms
-from PIL import Image
+from transformers import CLIPVisionModelWithProjection, AutoFeatureExtractor
 import torch
 import numpy as np
+from datasets import Dataset, Image as DatasetsImage
+from PIL import Image
+
 
 class ImageVectorizer:
-    def __init__(self):
-        self.model = models.resnet50(pretrained=True)
-        self.model.eval()
-        self.preprocess = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
+    def __init__(self, model_name: str = "openai/clip-vit-base-patch32"):
+        self.model_name = model_name
+        self.vision_model = CLIPVisionModelWithProjection.from_pretrained(model_name)
+        self.extractor = AutoFeatureExtractor.from_pretrained(model_name)
+        self.vision_model.eval()
 
-    def vectorize(self, image: Image.Image) -> np.ndarray:
-        img_t = self.preprocess(image)
-        batch_t = torch.unsqueeze(img_t, 0)
+    def vectorize(self, image: Image.Image) -> dict:
+        # Convert the PIL image to the datasets Image format
+        ds = Dataset.from_dict({"Image": [image]}).cast_column("Image", DatasetsImage())
+        
+        # Extract the image tensors
+        image_input = self.extractor(images=ds[0]['Image'], return_tensors="pt")
+        
+        # Generate the visual embedding
         with torch.no_grad():
-            output = self.model(batch_t)
-        return output.numpy()
+            visual_embedding = self.vision_model(**image_input).image_embeds.squeeze().numpy()
+        
+        # Prepare the response
+        response = {
+            "embedding": visual_embedding.tolist(),
+            "model": self.model_name,
+            "timestamp": int(time.time())
+        }
+        
+        return response

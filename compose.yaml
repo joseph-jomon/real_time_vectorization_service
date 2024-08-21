@@ -1,0 +1,80 @@
+# Comments are provided throughout this file to help you get started.
+# If you need more help, visit the Docker compose reference guide at
+# https://docs.docker.com/go/compose-spec-reference/
+
+# Here the instructions define your application as a service called "server".
+# This service is built from the Dockerfile in the current directory.
+# You can add other services your application may depend on here, such as a
+# database or a cache. For examples, see the Awesome Compose repository:
+# https://github.com/docker/awesome-compose
+services:
+
+
+  proxy:
+    image: traefik:v3.1
+    command: 
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entryPoints.api.address=:80"
+      - "--entryPoints.web-secure.address=:443" # Declares the web-secure entrypoint in Traefik
+      - "--certificatesresolvers.myleresolver.acme.email=josephjomon401@gmail.com"
+      - "--certificatesresolvers.myleresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myleresolver.acme.tlschallenge=true"
+
+    ports:
+      - "80:80"
+      - "443:443" #Docker sends requests on port 443 to Traefik on port 443
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+
+
+
+  server:
+    build: 
+      context: ./
+      target: base
+    labels:
+      - "traefik.http.routers.router_rule_01.entryPoints=web-secure" # gave name to the router(router_rule_01) and specified its entrypoint(api)
+      - "traefik.http.routers.router_rule_01.rule=Host(`kundalin.com`)" # specified the routing rule of the router(router_rule_01)
+      - "traefik.http.routers.router_rule_01.service=service_01" # Explicit definition of a router(router_rule_01) with one service(service_01)
+      - "traefik.http.routers.router_rule_01.tls=true"
+      - "traefik.http.routers.router_rule_01.tls.certresolver=myleresolver"
+      - "traefik.http.services.service_01.loadbalancer.server.port=8000" # Definition of a Service(service_01) running on the container [https://doc.traefik.io/traefik/routing/providers/docker/#service-definition]
+
+
+
+# The commented out section below is an example of how to define a PostgreSQL
+# database that your application can use. `depends_on` tells Docker Compose to
+# start the database before your application. The `db-data` volume persists the
+# database data between container restarts. The `db-password` secret is used
+# to set the database password. You must create `db/password.txt` and add
+# a password of your choosing to it before running `docker compose up`.
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#   db:
+#     image: postgres
+#     restart: always
+#     user: postgres
+#     secrets:
+#       - db-password
+#     volumes:
+#       - db-data:/var/lib/postgresql/data
+#     environment:
+#       - POSTGRES_DB=example
+#       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+#     expose:
+#       - 5432
+#     healthcheck:
+#       test: [ "CMD", "pg_isready" ]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+# volumes:
+#   db-data:
+# secrets:
+#   db-password:
+#     file: db/password.txt
+
