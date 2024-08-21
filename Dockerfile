@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 USER appuser
 
 # Copy source code
-COPY . .
+COPY app /app
 
 # Expose the port for the application
 EXPOSE 8000
