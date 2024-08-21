@@ -1,4 +1,5 @@
 from transformers import CLIPVisionModelWithProjection, AutoFeatureExtractor
+import time
 import torch
 import numpy as np
 from datasets import Dataset, Image as DatasetsImage
