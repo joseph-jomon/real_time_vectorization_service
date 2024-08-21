@@ -6,3 +6,4 @@ pydantic==2.8.2
 torch==2.4.0
 transformers==4.44.1
 uvicorn==0.22.0  # Add this line for uvicorn
+python-multipart
