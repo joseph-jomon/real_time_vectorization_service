@@ -4,8 +4,8 @@ from PIL import Image
 import io
 
 # Import the vectorizer classes
-from text_vectorizer import TextVectorizer
-from image_vectorizer import ImageVectorizer
+from models.text_vectorizer import TextVectorizer
+from models.image_vectorizer import ImageVectorizer
 
 app = FastAPI()
 
