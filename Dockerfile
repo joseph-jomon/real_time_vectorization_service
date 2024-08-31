@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python -m pip install --no-cache-dir -r requirements.txt
 
-    # Copy source code
+# Copy source code
 COPY app /app
 
 # Switch to non-privileged user
