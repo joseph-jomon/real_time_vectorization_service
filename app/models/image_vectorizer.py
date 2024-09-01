@@ -32,3 +32,5 @@ class ImageVectorizer:
         }
         
         return response
+    def close(self):
+        print(f"implement code to release the resources for {self.model_name}")
