@@ -10,8 +10,9 @@ from models.image_vectorizer import ImageVectorizer
 app = FastAPI()
 
 # Initialize vectorizers
-text_vectorizer = TextVectorizer()
-image_vectorizer = ImageVectorizer()
+# Instantiating the TextVectorizer class and ImageVectorizer class
+text_vectorizer = TextVectorizer()  #  This will load the model as soon as the instance is created
+image_vectorizer = ImageVectorizer() # This will load the model as soon as the instance is created
 
 # Pydantic model for text input
 class TextInput(BaseModel):
