@@ -37,7 +37,7 @@ services:
       target: base
     labels:
       - "traefik.http.routers.router_rule_01.entryPoints=web-secure" # gave name to the router(router_rule_01) and specified its entrypoint(api)
-      - "traefik.http.routers.router_rule_01.rule=Host(`kundalin.com`)" # specified the routing rule of the router(router_rule_01)
+      - "traefik.http.routers.router_rule_01.rule=Host(`realtime.vector.kundalin.com`)" # specified the routing rule of the router(router_rule_01)
       - "traefik.http.routers.router_rule_01.service=service_01" # Explicit definition of a router(router_rule_01) with one service(service_01)
       - "traefik.http.routers.router_rule_01.tls=true"
       - "traefik.http.routers.router_rule_01.tls.certresolver=myleresolver"
