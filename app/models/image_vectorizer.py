@@ -24,21 +24,23 @@ class ImageVectorizer:
         # Extract the image tensors
         def image_preprocessing(example):
             extracted = self.extractor(
-                images=[e.convert('RGB') for e in example["image_path"]],
+                images=[e.convert('RGB') for e in example["Image"]],
                 return_tensors="pt"
             )
+            return extracted
 
         ds2 = copy.deepcopy(ds)
         ds2.set_transform(image_preprocessing)
 
         #Create DataLoader for batched processing
         image_dl = DataLoader(ds2, batch_size=36, shuffle=False, num_workers=0)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # Generate the visual embedding    
         outputs = []
-        for batch in tqdm(text_dl):
+        for batch in tqdm(image_dl):
             with torch.no_grad():
-                visual_embedding = self.vision_model(batch['pixel_values'].to(device)).image_embeds.squeeze()
-                outputs.append(embeddings.to("cpu"))
+                embedding = self.vision_model(batch['pixel_values'].to(device)).image_embeds.squeeze()
+                outputs.append(embedding.to("cpu"))
         vision_embeddings = np.vstack(outputs)
         vision_embeddings_normed = vision_embeddings / np.linalg.norm(vision_embeddings, axis=1)[:, np.newaxis]
 
@@ -47,7 +49,7 @@ class ImageVectorizer:
         
         # Prepare the response
         response = {
-            "embedding": visual_embeddings_normed.tolist(),
+            "embedding": vision_embeddings_normed.tolist(),
             "model": self.model_name,
             "timestamp": int(time.time())
         }
