@@ -3,7 +3,10 @@ import time
 import torch
 import numpy as np
 from datasets import Dataset, Image as DatasetsImage
+from torch.utils.data import DataLoader
+import copy
 from PIL import Image
+from tqdm import tqdm
 
 
 class ImageVectorizer:
@@ -11,6 +14,7 @@ class ImageVectorizer:
         self.model_name = model_name
         self.vision_model = CLIPVisionModelWithProjection.from_pretrained(model_name) #model loading takes place here
         self.extractor = AutoFeatureExtractor.from_pretrained(model_name) # model loading takes place here also
+        self.vision_model.to(torch.device("cpu"))
         self.vision_model.eval()
 
     def vectorize(self, image: Image.Image) -> dict:
@@ -18,15 +22,32 @@ class ImageVectorizer:
         ds = Dataset.from_dict({"Image": [image]}).cast_column("Image", DatasetsImage())
         
         # Extract the image tensors
-        image_input = self.extractor(images=ds[0]['Image'], return_tensors="pt")
-        
-        # Generate the visual embedding
-        with torch.no_grad():
-            visual_embedding = self.vision_model(**image_input).image_embeds.squeeze().numpy()
+        def image_preprocessing(example):
+            extracted = self.extractor(
+                images=[e.convert('RGB') for e in example["image_path"]],
+                return_tensors="pt"
+            )
+
+        ds2 = copy.deepcopy(ds)
+        ds2.set_transform(image_preprocessing)
+
+        #Create DataLoader for batched processing
+        image_dl = DataLoader(ds2, batch_size=36, shuffle=False, num_workers=0)
+        # Generate the visual embedding    
+        outputs = []
+        for batch in tqdm(text_dl):
+            with torch.no_grad():
+                visual_embedding = self.vision_model(batch['pixel_values'].to(device)).image_embeds.squeeze()
+                outputs.append(embeddings.to("cpu"))
+        vision_embeddings = np.vstack(outputs)
+        vision_embeddings_normed = vision_embeddings / np.linalg.norm(vision_embeddings, axis=1)[:, np.newaxis]
+
+
+
         
         # Prepare the response
         response = {
-            "embedding": visual_embedding.tolist(),
+            "embedding": visual_embeddings_normed.tolist(),
             "model": self.model_name,
             "timestamp": int(time.time())
         }
