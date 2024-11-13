@@ -43,13 +43,14 @@ class ImageVectorizer:
                 outputs.append(embedding.to("cpu"))
         vision_embeddings = np.vstack(outputs)
         vision_embeddings_normed = vision_embeddings / np.linalg.norm(vision_embeddings, axis=1)[:, np.newaxis]
+        vision_embeddings_normed_list = vision_embeddings_normed.tolist()
 
 
 
         
         # Prepare the response
         response = {
-            "embedding": vision_embeddings_normed,
+            "embedding": vision_embeddings_normed_list[0],
             "model": self.model_name,
             "timestamp": int(time.time())
         }
