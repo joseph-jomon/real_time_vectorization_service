@@ -49,7 +49,7 @@ class ImageVectorizer:
         
         # Prepare the response
         response = {
-            "embedding": vision_embeddings_normed.tolist(),
+            "embedding": vision_embeddings_normed,
             "model": self.model_name,
             "timestamp": int(time.time())
         }
