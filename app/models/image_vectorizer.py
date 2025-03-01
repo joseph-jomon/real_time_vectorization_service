@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 
 class ImageVectorizer:
-    def __init__(self, model_name: str = "openai/clip-vit-base-patch32"): # models are loaded in the __init__ of the class. that means This will load the model as soon as the instance is created
+    def __init__(self, model_name: str = "geolocal/StreetCLIP"): # models are loaded in the __init__ of the class. that means This will load the model as soon as the instance is created
         self.model_name = model_name
         self.vision_model = CLIPVisionModelWithProjection.from_pretrained(model_name) #model loading takes place here
         self.extractor = AutoFeatureExtractor.from_pretrained(model_name) # model loading takes place here also
