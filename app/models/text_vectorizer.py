@@ -4,7 +4,7 @@ import numpy as np
 from transformers import AutoTokenizer, CLIPTextModelWithProjection
 
 class TextVectorizer:
-    def __init__(self, model_name: str = "openai/clip-vit-base-patch32"):
+    def __init__(self, model_name: str = "geolocal/StreetCLIP"):
         """
         Initializes the TextVectorizer with the specified model.
         
